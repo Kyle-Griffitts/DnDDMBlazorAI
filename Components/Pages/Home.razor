@@ -6,19 +6,29 @@
 @inject Microsoft.Extensions.Configuration.IConfiguration _config  
 @inject DungeonMasterChatService DungeonMasterChat  
 
-<h3>Azure OpenAI Chat</h3>  
-<div class="mb-3 d-flex align-items-center" style="margin:auto;">  
-    <input class="form-control me-2" @bind="userMessage" placeholder="Type your message..." @onkeydown="HandleEnter" />  
-    <button class="btn btn-primary" @onclick="SendMessage">Send</button>  
-</div>  
-<div class="card p-3" style="margin:auto;">  
-    @foreach (var message in DungeonMasterChat.GetChatLog())
-    {  
-        <div class="mb-2">  
-            <strong>@message.Role:</strong> @message.Content  
-        </div>  
-    }  
-</div>  
+<div class="page-scroll">
+
+    <h2 class="glow-text text-center">📜 Dungeon Master's Oracle</h2>
+
+    <div class="input-group mb-3" style="max-width: 800px; width: 100%;">
+        <input class="form-control" @bind="userMessage" @onkeydown="HandleEnter" placeholder =" Speak your spell..." />
+        <button class="btn glow-button" @onclick="SendMessage">Cast</button>
+    </div>
+
+    <div class="chat-container card p-3">
+        @foreach (var message in DungeonMasterChat.GetChatLog())
+        {
+            var isLast = message == DungeonMasterChat.GetChatLog().Last();
+            <div class="chat-bubble @(message.Role == "user" ? "user-msg" : "bot-msg") mb-2">
+                <div class="chat-meta text-muted">
+                    <strong>@message.Role:</strong>
+                </div>
+                <div class="chat-content">@message.Content</div>
+            </div>
+        }
+    </div>
+
+</div>
 
 @code {  
     private string? userMessage;  

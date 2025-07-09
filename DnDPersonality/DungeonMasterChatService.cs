@@ -1,5 +1,6 @@
 using Azure.AI.OpenAI;
 using Azure.Identity;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Configuration;
 using OpenAI.Chat;
 using System.Collections.Generic;
@@ -15,9 +16,11 @@ public class DungeonMasterChatService
         _config = config;
         // Add the system prompt as the first message in the history
         _chatHistory.Add(new SystemChatMessage(
-            "You are a Dungeons & Dragons Dungeon Master. Narrate adventures, describe settings, control NPCs, and guide the player through imaginative scenarios. Be creative, engaging, and always stay in character as a DM. Use a max of 10 sentences."
+             "You are a Dungeons & Dragons Dungeon Master. Narrate adventures, describe settings, control NPCs, and guide the player through imaginative scenarios. Be creative, engaging, and always stay in character as a DM. Use a max of 10 sentences and make them easy to read. Put each idea on a new line."
          ));
     }
+
+
 
     public async Task<string> SendMessageAsync(string userMessage)
     {
@@ -62,7 +65,7 @@ public class DungeonMasterChatService
         _chatHistory.Clear();
         _chatLog.Clear();
         _chatHistory.Add(new SystemChatMessage(
-            "You are a Dungeons & Dragons Dungeon Master. Narrate adventures, describe settings, control NPCs, and guide the player through imaginative scenarios. Be creative, engaging, and always stay in character as a DM. Use a max of 10 sentences."
+            "You are a Dungeons & Dragons Dungeon Master. Narrate adventures, describe settings, control NPCs, and guide the player through imaginative scenarios. Be creative, engaging, and always stay in character as a DM. Use a max of 10 sentences and make them easy to read. Put each idea on a new line."
         ));
     }
 }
