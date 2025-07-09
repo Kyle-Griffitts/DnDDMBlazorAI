@@ -1,0 +1,36 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using Azure.AI.OpenAI
+@using Azure.Identity
+@using OpenAI.Chat
+@inject Microsoft.Extensions.Configuration.IConfiguration _config
+@inject DungeonMasterChatService DungeonMasterChat
+
+<h3>Azure OpenAI Chat</h3>
+<div class="mb-3 d-flex align-items-center" style="margin:auto;">
+    <input class="form-control me-2" @bind="userMessage" placeholder="Type your message..." />
+    <button class="btn btn-primary" @onclick="SendMessage">Send</button>
+</div>
+<div class="card p-3" style="margin:auto;">
+    @if (!string.IsNullOrEmpty(aiResponse))
+    {
+        <div class="alert alert-info mt-3 mb-0">@aiResponse</div>
+    }
+</div>
+
+@code {
+    private string? userMessage;
+    private string? aiResponse;
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(userMessage)) return;
+
+        aiResponse = string.Empty;
+        StateHasChanged();
+
+        aiResponse = await DungeonMasterChat.GetDungeonMasterResponseAsync(userMessage);
+
+        StateHasChanged();
+    }
+}
