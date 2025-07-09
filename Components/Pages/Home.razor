@@ -23,7 +23,7 @@
                 <div class="chat-meta text-muted">
                     <strong>@message.Role:</strong>
                 </div>
-                <div class="chat-content">@message.Content</div>
+                <div class="chat-content">@((MarkupString)message.Content.Replace("\n", "<br />"))</div>
             </div>
         }
     </div>
@@ -42,7 +42,8 @@
         StateHasChanged();  
     }  
 
-    private async void HandleEnter(KeyboardEventArgs e)  
+    // create a new Task that handles pressing Enter as a valid input to send a message
+    private async Task HandleEnter(KeyboardEventArgs e)  
     {  
         if (e.Key == "Enter")  
         {  

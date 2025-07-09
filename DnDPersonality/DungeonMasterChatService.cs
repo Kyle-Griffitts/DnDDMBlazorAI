@@ -20,8 +20,6 @@ public class DungeonMasterChatService
          ));
     }
 
-
-
     public async Task<string> SendMessageAsync(string userMessage)
     {
         var endpoint = new Uri(_config["AZURE_OPENAI_ENDPOINT"]!);
