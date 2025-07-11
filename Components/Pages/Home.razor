@@ -3,44 +3,81 @@
 @using Azure.AI.OpenAI  
 @using Azure.Identity  
 @using OpenAI.Chat  
-@inject Microsoft.Extensions.Configuration.IConfiguration _config  
+@inject Microsoft.Extensions.Configuration.IConfiguration _config
 @inject DungeonMasterChatService DungeonMasterChat  
+@inject ScrollService ScrollMagic
 
 <div class="page-scroll">
-
+   
     <h2 class="glow-text text-center">📜 Dungeon Master's Oracle</h2>
 
-    <div class="input-group mb-3" style="max-width: 800px; width: 100%;">
-        <input class="form-control" @bind="userMessage" @onkeydown="HandleEnter" placeholder =" Speak your spell..." />
-        <button class="btn glow-button" @onclick="SendMessage">Cast</button>
+    <div class="input-group mb-3" style="max-width: 1000px; width: 100%;">
+        <input class="form-control" @bind="userMessage" disabled="@isSending" @onkeydown="HandleEnter" placeholder=" Speak your spell..." />
+        <button class="btn glow-button" @onclick="SendMessage" disabled="@isSending">Cast
+        </button>
     </div>
 
-    <div class="chat-container card p-3">
-        @foreach (var message in DungeonMasterChat.GetChatLog())
+    @{
+        var chatLog = DungeonMasterChat.GetChatLog();
+        var lastMessage = chatLog.LastOrDefault();
+    }
+    
+    <div class="chat-wrapper d-flex" style="width: 1000px; margin: auto;">
+        <!-- Chat messages -->
+    <div class="chat-container card p-3"
+         style="overflow-y: auto; height: 800px; width: 1000px; margin: auto;"
+         @ref="chatContainerRef">
+        @foreach (var message in chatLog)
         {
-            var isLast = message == DungeonMasterChat.GetChatLog().Last();
             <div class="chat-bubble @(message.Role == "user" ? "user-msg" : "bot-msg") mb-2">
                 <div class="chat-meta text-muted">
                     <strong>@message.Role:</strong>
                 </div>
-                <div class="chat-content">@((MarkupString)message.Content.Replace("\n", "<br />"))</div>
+                <div class="chat-content">
+                    @((MarkupString)message.Content.Replace("\n", "<br />"))
+                </div>
             </div>
         }
+    </div>
+    
+
+    <div class="dice-panel d-flex flex-column align-items-center" style="width: 150px;">
+        <button class="dice-button d20" @onclick="() => RollDice(20)">🎲 D20</button>
+        <button class="dice-button d8" @onclick="() => RollDice(8)">🎲 D8</button>
+        <button class="dice-button d6" @onclick="() => RollDice(6)">🎲 D6</button>
+    </div>
     </div>
 
 </div>
 
-@code {  
+@code {
     private string? userMessage;  
+    private bool isSending = false;
 
-    private async Task SendMessage()  
-    {  
-        if (string.IsNullOrWhiteSpace(userMessage)) return;  
+    private ElementReference chatContainerRef;
+    private bool shouldScroll = false;
 
-        await DungeonMasterChat.SendMessageAsync(userMessage);  
-        userMessage = string.Empty;  
-        StateHasChanged();  
-    }  
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(userMessage) || isSending) return;
+
+        isSending = true;
+        await DungeonMasterChat.SendMessageAsync(userMessage);
+        userMessage = string.Empty;
+        isSending = false;
+
+        shouldScroll = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (shouldScroll)
+        {
+            shouldScroll = false;
+            await ScrollMagic.ScrollToBottomAsync(chatContainerRef);
+        }
+    }
 
     // create a new Task that handles pressing Enter as a valid input to send a message
     private async Task HandleEnter(KeyboardEventArgs e)  
@@ -50,4 +87,29 @@
             await SendMessage();  
         }  
     }  
+
+    //to handle the roll dice
+    private async Task RollDice(int sides)
+{
+    var roll = Random.Shared.Next(1, sides + 1);
+    var message = $"🧙‍♂️ You rolled a D{sides}: **{roll}**";
+
+    await DungeonMasterChat.SendMessageAsync(message);
+    userMessage = string.Empty;
+
+    shouldScroll = true;
+    await InvokeAsync(StateHasChanged);
 }
+
+}
+
+<script>
+    window.scrollToBottom = function (element) {
+        if (element) {
+            element.scrollTo({
+                top: element.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    };
+</script>

@@ -7,6 +7,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<DungeonMasterChatService>();
+builder.Services.AddScoped<ScrollService>();
 
 var app = builder.Build();
 
