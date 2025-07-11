@@ -1,0 +1,18 @@
+﻿@inject DungeonMasterChatService DungeonMasterChat
+
+@code {
+    [Parameter] public List<ChatLogMessage> Log { get; set; } = new();
+}
+
+@foreach (var message in DungeonMasterChat.GetChatLog())
+{
+    <div class="chat-bubble @(message.Role == "user" ? "user-msg" : "bot-msg") mb-2">
+        <div class="chat-meta text-muted">
+            <strong>@message.Role:</strong>
+        </div>
+        <div class="chat-content">
+            @((MarkupString)message.Content.Replace("\n", "<br />"))
+        </div>
+    </div>
+}
+

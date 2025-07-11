@@ -78,10 +78,10 @@ p, input, button {
     transition: box-shadow 0.3s ease-in-out;
 }
 
-.glow-button:hover {
+    .glow-button:hover {
         box-shadow: 0 0 15px #ffdf91, 0 0 30px #ffdf91;
         cursor: pointer;
- }
+    }
 
 @keyframes flickerGlow {
     0% {
@@ -118,21 +118,21 @@ p, input, button {
     transition: transform 0.3s ease-in-out;
 }
 
-.dice-button:hover {
-    transform: scale(1.1) rotate(6deg);
-}
+    .dice-button:hover {
+        transform: scale(1.1) rotate(6deg);
+    }
 
 .dice-icon {
     width: 60px;
     height: auto;
 }
 
-.dice-icon polygon {
-    fill: #2c2c2c;
-    stroke: #ccc;
-    stroke-width: 2;
-    filter: drop-shadow(0 0 6px #999);
-}
+    .dice-icon polygon {
+        fill: #2c2c2c;
+        stroke: #ccc;
+        stroke-width: 2;
+        filter: drop-shadow(0 0 6px #999);
+    }
 
 .dice-icon {
     width: 60px;
@@ -159,12 +159,13 @@ p, input, button {
     font-size: 18px;
     font-family: serif;
     transform: scale(1);
-    transition: transform 0.4s ease;
+    transition: transform 0.3s ease;
+    transform-origin: 50% 55%; /* Match x/y of text position */
 }
 
-.dice-text.revealed {
+    .dice-text.revealed {
         transform: scale(1.6);
-}
+    }
 
 @keyframes roll-bounce {
     0% {

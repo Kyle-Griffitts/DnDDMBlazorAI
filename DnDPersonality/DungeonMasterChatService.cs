@@ -14,6 +14,8 @@ public class DungeonMasterChatService
     private string? _lastFallbackSuggestion = null;
     private string _playerClass = string.Empty;
 
+    public event Action? OnChatUpdated;
+
     public void SetPlayerClass(string playerClass)
     {
         _playerClass = playerClass.Trim();
@@ -35,15 +37,13 @@ public class DungeonMasterChatService
 
     }
 
-
-
     public async Task<string> SendMessageAsync(string userMessage)
     {
         var endpoint = new Uri(_config["AZURE_OPENAI_ENDPOINT"]!);
         var client = new AzureOpenAIClient(endpoint, new DefaultAzureCredential());
         var chatClient = client.GetChatClient("gpt-4o-mini");
 
-
+        OnChatUpdated?.Invoke();
         // Append DM-style actionable suggestions
         var classSuggestions = DiceActionRegistry.GetSuggestions(_playerClass, userMessage);
         var formatted = string.Join("\n", classSuggestions.Select((s, i) => $"{i + 1}. {s}"));
@@ -124,4 +124,6 @@ public static class DiceActionRegistry
             : new List<string> { "Choose your path — roll a D6 for fate." };
     }
 }
+
+
 
