@@ -13,8 +13,8 @@
     <h2 class="glow-text text-center">📜 Dungeon Master's Oracle</h2>
 
     <div class="input-group mb-3" style="max-width: 1000px; width: 100%;">
-        <input class="form-control" @bind="userMessage" disabled="@isSending" @onkeydown="HandleEnter" placeholder=" Speak your spell..." />
-        <button class="btn glow-button" @onclick="SendMessage" disabled="@isSending">
+        <input class="form-control" @bind="userMessage" @onkeydown="HandleEnter" readonly="@isSending" placeholder=" Speak your spell..." />
+        <button class="btn glow-button" @onclick="SendMessage">
             Cast
         </button>
     </div>
@@ -41,8 +41,24 @@
             </div>
 
         </div>
+        <!-- Candle Animations -->
+        <div class="candle-container candle-left">
+            <div class="flame"></div>
+            <div class="wick"></div>
+            <div class="wax-body"></div>
+            <div class="drip drip1"></div>
+            <div class="drip drip2"></div>
+        </div>
 
+        <div class="candle-container candle-right">
+            <div class="flame"></div>
+            <div class="wick"></div>
+            <div class="wax-body"></div>
+            <div class="drip drip1"></div>
+            <div class="drip drip2"></div>
+        </div>
     </div>
+
 </div>
 
 @code {
@@ -78,11 +94,12 @@
     // create a new Task that handles pressing Enter as a valid input to send a message
     private async Task HandleEnter(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter")
+        if (e.Key == "Enter" && !isSending)
         {
             await SendMessage();
         }
     }
+
 
     //to handle the roll dice
     private Dictionary<int, int> diceValues = new();
