@@ -7,6 +7,7 @@
 @inject DungeonMasterChatService DungeonMasterChat  
 @inject ScrollService ScrollMagic
 
+
 <div class="page-scroll">
    
     <h2 class="glow-text text-center">📜 Dungeon Master's Oracle</h2>
@@ -39,15 +40,33 @@
             </div>
         }
     </div>
-    
 
-    <div class="dice-panel d-flex flex-column align-items-center" style="width: 150px;">
-        <button class="dice-button d20" @onclick="() => RollDice(20)">🎲 D20</button>
-        <button class="dice-button d8" @onclick="() => RollDice(8)">🎲 D8</button>
-        <button class="dice-button d6" @onclick="() => RollDice(6)">🎲 D6</button>
-    </div>
+
+        <div class="dice-panel d-flex flex-column align-items-center" style="width: 150px;">
+            <div class="dice-tray">
+                <button class="dice-button" @onclick="() => RollDice(20)">
+                    @D20Svg
+                </button>
+                <button class="dice-button" @onclick="() => RollDice(12)">
+                    @D12Svg
+                </button>
+                <button class="dice-button" @onclick="() => RollDice(10)">
+                    @D10Svg
+                </button>
+                <button class="dice-button" @onclick="() => RollDice(8)">
+                    @D8Svg
+                </button>
+                <button class="dice-button" @onclick="() => RollDice(6)">
+                    @D6Svg
+                </button>
+                <button class="dice-button" @onclick="() => RollDice(4)">
+                    @D4Svg
+                </button>
+        </div>
+
     </div>
 
+    </div>
 </div>
 
 @code {
@@ -89,18 +108,98 @@
     }  
 
     //to handle the roll dice
+    private Dictionary<int, int> diceValues = new();
+    private Dictionary<int, bool> isRolling = new();
+    private Dictionary<int, string> diceGlowClass = new();
+    private Dictionary<int, bool> isTextRevealed = new();
+
+    protected override void OnInitialized()
+    {
+        foreach (var sides in new[] { 4, 6, 8, 10, 12, 20 })
+        {
+            diceValues[sides] = sides;      // Default face value or 0 if preferred
+            isRolling[sides] = false;
+            diceGlowClass[sides] = "normal"; // default glow class
+            isTextRevealed[sides] = false;
+        }
+    }
+
+
     private async Task RollDice(int sides)
-{
-    var roll = Random.Shared.Next(1, sides + 1);
-    var message = $"🧙‍♂️ You rolled a D{sides}: **{roll}**";
+    {
+        isRolling[sides] = true;
+        isTextRevealed[sides] = true;
+        diceValues[sides] = new Random().Next(1, sides + 1);
 
-    await DungeonMasterChat.SendMessageAsync(message);
-    userMessage = string.Empty;
+        // Set visual glow class
+        diceGlowClass[sides] = diceValues[sides] == sides
+            ? "critical"
+            : diceValues[sides] == 1
+                ? "fail"
+                : "normal";
 
-    shouldScroll = true;
-    await InvokeAsync(StateHasChanged);
-}
+        StateHasChanged(); // update immediately
 
+        // Fire-and-forget reset after 3 seconds
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(3000);
+            diceValues[sides] = sides;
+            isTextRevealed[sides] = false;
+            InvokeAsync(StateHasChanged); // resets the animations for the dice value
+        });
+
+        // Meanwhile, continue with message and scrolling
+        var message = $"🧙‍♂️ You rolled a D{sides}: **{diceValues[sides]}**";
+        await DungeonMasterChat.SendMessageAsync(message);
+
+        userMessage = string.Empty;
+        shouldScroll = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // Handles each dice
+    private RenderFragment D4Svg => @<svg viewBox="0 0 100 100" class="dice-icon @(isRolling[4] ? "roll-animation" : "") @diceGlowClass[4]">
+        <polygon points="50,5 95,95 5,95" fill="#2c2c2c" stroke="#ccc" stroke-width="2" />
+            <text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle"
+              class="dice-text">@diceValues[4]</text>
+
+    </svg>;
+
+    private RenderFragment D6Svg => @<svg viewBox="0 0 100 100" class="dice-icon @(isRolling[6] ? "roll-animation" : "") @diceGlowClass[6]">
+        <polygon points="20,20 80,20 80,80 20,80" fill="#2c2c2c" stroke="#ccc" stroke-width="2" />
+            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+              class="dice-text@(isTextRevealed[6] ? "revealed" : "")">@diceValues[6]</text>
+
+    </svg>;
+
+    private RenderFragment D8Svg => @<svg viewBox="0 0 100 100" class="dice-icon @(isRolling[8] ? "roll-animation" : "") @diceGlowClass[8]">
+        <polygon points="50,5 95,50 50,95 5,50" fill="#2c2c2c" stroke="#ccc" stroke-width="2" />
+            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+              class="dice-text@(isTextRevealed[8] ? "revealed" : "")">@diceValues[8]</text>
+
+    </svg>;
+
+    private RenderFragment D10Svg => @<svg viewBox="0 0 100 100" class="dice-icon @(isRolling[10] ? "roll-animation" : "") @diceGlowClass[10]">
+        <polygon points="50,5 90,50 50,95 10,50" fill="#2c2c2c" stroke="#ccc" stroke-width="2" />
+            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+              class="dice-text@(isTextRevealed[10] ? "revealed" : "")">@diceValues[10]</text>
+
+    </svg>;
+
+    private RenderFragment D12Svg => @<svg viewBox="0 0 100 100" class="dice-icon @(isRolling[12] ? "roll-animation" : "") @diceGlowClass[12]">
+        <polygon points="50,10 80,30 90,50 80,70 50,90 20,70 10,50 20,30" fill="#2c2c2c" stroke="#ccc" stroke-width="2" />
+            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+              class="dice-text@(isTextRevealed[12] ? "revealed" : "")">@diceValues[12]</text>
+
+    </svg>;
+
+    private RenderFragment D20Svg => @<svg viewBox="0 0 100 100" class="dice-icon @(isRolling[20] ? "roll-animation" : "") @diceGlowClass[20]">
+        <polygon points="50,10 80,25 90,55 70,80 50,90 30,80 10,55 20,25" fill="#2c2c2c" stroke="#ccc" stroke-width="2" />
+            <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+              class="dice-text@(isTextRevealed[20] ? "revealed" : "")">@diceValues[20]</text>
+
+    </svg>;
 }
 
 <script>

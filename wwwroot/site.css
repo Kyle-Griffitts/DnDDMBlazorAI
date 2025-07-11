@@ -101,50 +101,104 @@ p, input, button {
     animation: flickerGlow 2s infinite ease-in-out;
 }
 
-/* dice animations */
-.chat-wrapper {
+.dice-tray {
     display: flex;
-    gap: 16px;
-}
-
-.dice-panel {
-    min-width: 100px;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    padding: 16px;
+    overflow: visible;
 }
 
 .dice-button {
-    margin-bottom: 12px;
-    padding: 10px;
-    background-color: #2c2c2c;
-    color: white;
-    border: 2px solid #ccc;
-    border-radius: 50%;
-    font-size: 1rem;
+    background-color: transparent;
+    border: none;
+    padding: 0;
     cursor: pointer;
     transition: transform 0.3s ease-in-out;
 }
 
-    .dice-button:hover {
-        transform: scale(1.1) rotate(10deg);
+.dice-button:hover {
+    transform: scale(1.1) rotate(6deg);
+}
+
+.dice-icon {
+    width: 60px;
+    height: auto;
+}
+
+.dice-icon polygon {
+    fill: #2c2c2c;
+    stroke: #ccc;
+    stroke-width: 2;
+    filter: drop-shadow(0 0 6px #999);
+}
+
+.dice-icon {
+    width: 60px;
+    height: auto;
+    transition: transform 0.6s ease-in-out;
+}
+
+    .dice-icon.roll {
+        animation: roll-spin 0.6s ease-in-out;
     }
 
-    .dice-button:active {
-        animation: rollDice 0.4s ease-in-out;
+@keyframes roll-spin {
+    0% {
+        transform: rotate(0deg);
     }
 
-@keyframes rollDice {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.dice-text {
+    fill: white;
+    font-size: 18px;
+    font-family: serif;
+    transform: scale(1);
+    transition: transform 0.4s ease;
+}
+
+.dice-text.revealed {
+        transform: scale(1.6);
+}
+
+@keyframes roll-bounce {
     0% {
         transform: scale(1) rotate(0deg);
     }
 
     30% {
-        transform: scale(1.2) rotate(15deg);
+        transform: scale(1.2) rotate(180deg);
     }
 
-    70% {
-        transform: scale(0.9) rotate(-15deg);
+    60% {
+        transform: scale(0.9) rotate(270deg);
     }
 
     100% {
-        transform: scale(1) rotate(0deg);
+        transform: scale(1) rotate(360deg);
     }
+}
+
+.roll-animation {
+    animation: roll-bounce 0.6s ease-in-out;
+}
+
+.critical polygon {
+    stroke: gold;
+    filter: drop-shadow(0 0 10px gold);
+}
+
+.fail polygon {
+    stroke: crimson;
+    filter: drop-shadow(0 0 8px crimson);
+}
+
+.normal polygon {
+    stroke: #ccc;
+    filter: drop-shadow(0 0 6px #888);
 }
