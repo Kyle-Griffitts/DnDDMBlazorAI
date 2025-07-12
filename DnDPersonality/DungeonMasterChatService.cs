@@ -3,7 +3,6 @@ using Azure.Identity;
 using DnDDMBlazorAI.DnDClassActions;
 using OpenAI.Chat;
 
-
 public class DungeonMasterChatService
 {
     private readonly IConfiguration _config;
@@ -19,14 +18,32 @@ public class DungeonMasterChatService
     // applies context to the last rolled value
     public void SetSkillContext(string context) => _lastAbilityContext = context.Trim();
 
-    // AI prompts
+    // AI initialization prompts
     public static class DungeonMasterPrompts
     {
         public const string SystemPrompt =
-            "You are a Dungeons & Dragons Dungeon Master guiding a {playerClass}. Narrate adventures, describe settings, control NPCs, and guide the player through imaginative scenarios. Be creative, engaging, and always stay in character as a DM. Use a max of 10 sentences and make them easy to read. Put each idea on a new line.";
+            "You are a Dungeons & Dragons Dungeon Master guiding a {playerClass}. " +
+            "Narrate adventures, describe settings, control NPCs, and guide the player through imaginative scenarios. " +
+            "Be creative, engaging, and always stay in character as a DM. " +
+            "Use a max of 10 sentences and make them easy to read. Put each idea on a new line.";
 
         public const string FallbackClassPrompt =
-            "Before we begin, tell me your class so I can tailor your adventures. Are you a Rogue, Wizard, Paladin, Ranger, or something else?";
+            "Before we begin, tell me your class so I can tailor your adventures. " +
+            "Are you a Rogue, Wizard, Paladin, Ranger, or something else?";
+    }
+
+    // Method to enrich the AI prompt based on player message and class. Also includes formatting.
+    private string BuildEnrichedPrompt(string userMessage)
+    {
+        // Append DM-style actionable suggestions
+        var classSuggestions = DiceActionRegistry.GetSuggestions(_playerClass, userMessage);
+        var formatted = string.Join("\n", classSuggestions.Select((s, i) => $"{i + 1}. {s}"));
+        var enrichedRollMessage = $"{userMessage}\n\nClass Context: {_playerClass}\nSuggested Actions:\n{formatted}\n\nPlease expand narratively based on the player's intent and class abilities. " +
+            $"If the player provides a dice roll, interpret it as a test of chance or skill." +
+            $"\r\nAbility Context: {_lastAbilityContext} Use the roll’s number and class abilities to shape dramatic outcomes." +
+            $"\r\nPrompt rolls from the correct sided dice. Available dice to the player are D20, D12, D10, D8, D6, and D4";
+
+        return enrichedRollMessage;
     }
 
     // Constructor for the ChatService
@@ -51,6 +68,7 @@ public class DungeonMasterChatService
         }   
     }
 
+    // This task is what connects the chatbot. The ENPOINT string is what pulls the user secret 
     public async Task<string> SendMessageAsync(string userMessage)
     {
         var endpoint = new Uri(_config["AZURE_OPENAI_ENDPOINT"]!);
@@ -81,20 +99,6 @@ public class DungeonMasterChatService
         _chatLog.Add(new ChatLogMessage { Role = ChatRole.DM, Content = aiResponse });
 
         return aiResponse;
-    }
-
-    // Method to enrich the AI prompt based on player message and class. Also includes formating.
-    private string BuildEnrichedPrompt(string userMessage)
-    {
-        // Append DM-style actionable suggestions
-        var classSuggestions = DiceActionRegistry.GetSuggestions(_playerClass, userMessage);
-        var formatted = string.Join("\n", classSuggestions.Select((s, i) => $"{i + 1}. {s}"));
-        var enrichedRollMessage = $"{userMessage}\n\nClass Context: {_playerClass}\nSuggested Actions:\n{formatted}\n\nPlease expand narratively based on the player's intent and class abilities. " +
-            $"If the player provides a dice roll, interpret it as a test of chance or skill." +
-            $"\r\nAbility Context: {_lastAbilityContext} Use the roll’s number and class abilities to shape dramatic outcomes." +
-            $"\r\nPrompt rolls from the correct sided dice. Available dice to the player are D20, D12, D10, D8, D6, and D4";
-        
-        return enrichedRollMessage;
     }
 
     // Returns a user-friendly chat log with explicit roles
@@ -137,7 +141,7 @@ public static class ChatRoleExtension
 // based on the contents of the files
 public static class DiceActionRegistry
 {
-    private static readonly Dictionary<string, Func<string, List<string>>> _registry =
+    private static readonly Dictionary<string, Func<string, List<string>>> _classRegistry =
         new(StringComparer.OrdinalIgnoreCase)
         {
             { "Barbarian", BarbarianDiceActions.GetSuggestions },
@@ -158,7 +162,7 @@ public static class DiceActionRegistry
     // we either get a conext based roll suggestion or go to a default of choose your path
     public static List<string> GetSuggestions(string playerClass, string context)
     {
-        return _registry.TryGetValue(playerClass, out var provider)
+        return _classRegistry.TryGetValue(playerClass, out var provider)
             ? provider(context)
             : new List<string> { "Choose your path — roll a D6 for fate." };
     }
