@@ -6,9 +6,9 @@
 
 @foreach (var message in DungeonMasterChat.GetChatLog())
 {
-    <div class="chat-bubble @(message.Role == "user" ? "user-msg" : "bot-msg") mb-2">
+    <div class="chat-bubble @(message.Role == ChatRole.Player ? "player" : "dm") mb-2">
         <div class="chat-meta text-muted">
-            <strong>@message.Role:</strong>
+            <strong>@message.Role.ToDisplayName():</strong>
         </div>
         <div class="chat-content">
             @((MarkupString)message.Content.Replace("\n", "<br />"))

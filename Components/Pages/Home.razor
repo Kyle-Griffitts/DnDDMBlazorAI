@@ -10,7 +10,7 @@
 
 <div class="page-scroll">
 
-    <h2 class="glow-text text-center">📜 Dungeon Master's Oracle</h2>
+    <h2 class="glow-text text-center">📜 Dungeon Master</h2>
 
     <div class="input-group mb-3" style="max-width: 1000px; width: 100%;">
         <input class="form-control" @bind="userMessage" @onkeydown="HandleEnter" readonly="@isSending" placeholder=" Speak your spell..." />
@@ -19,10 +19,9 @@
         </button>
     </div>
 
-    <div class="chat-wrapper d-flex" style="width: 1000px; margin: auto;">
+    <div class="chat-wrapper d-flex">
         <!-- Chat messages -->
         <div class="chat-container card p-3"
-             style="overflow-y: auto; height: 800px; width: 1000px; margin: auto;"
              @ref="chatContainerRef">
             <ChatMessage Log="@chatLog" />
         </div>

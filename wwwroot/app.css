@@ -1,9 +1,10 @@
 
 /*Text handling*/
 html, body {
-    margin: 0;
-    padding: 0;
     height: 100vh;
+    margin: 0;
+    overflow-y: hidden; /*prevents outer scroll*/
+    padding: 0;
     background: url('/images/parchment-texture.jpg') repeat;
     font-family: 'Cinzel', serif;
     color: #3e2f1c;
@@ -11,14 +12,15 @@ html, body {
 
 .chat-container {
     width: 100%;
-    max-width: 900px;
-    height: 70vh;
+    max-width: 1000px;
+    flex: 1;
+    height: 70vh; /* adjust for header + input group */
+    overflow-y: auto;
     margin: auto;
     padding: 1.5rem;
-    overflow-y: auto;
-    background-color: rgba(255, 250, 230, 0.95);
+    background-color: #F5DEB3;
     border-radius: 12px;
-    box-shadow: 0 0 15px rgba(85, 65, 30, 0.6);
+    box-shadow: 0 0 15px #EEE8AA;
 }
 
 .chat-bubble {
@@ -31,14 +33,16 @@ html, body {
     font-size: 1rem;
 }
 
-.user-msg {
+.player {
     background-color: #e6d8b5;
-    text-align: right;
-    margin-left: auto;
+    justify-content: flex-end;
+    text-align: left;
+    margin-right: auto;
 }
 
-.bot-msg {
+.dm {
     background-color: #f3e9c8;
+    justify-content: flex-start;
     text-align: left;
     margin-right: auto;
 }

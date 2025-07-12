@@ -13,7 +13,6 @@ public class DungeonMasterChatService
     private readonly List<ChatLogMessage> _chatLog = new();
     private string? _lastFallbackSuggestion = null;
     private string _playerClass = string.Empty;
-
     public event Action? OnChatUpdated;
 
     public void SetPlayerClass(string playerClass)
@@ -21,20 +20,36 @@ public class DungeonMasterChatService
         _playerClass = playerClass.Trim();
     }
 
+    // AI prompts
+    public static class DungeonMasterPrompts
+    {
+        public const string SystemPrompt =
+            "You are a Dungeons & Dragons Dungeon Master guiding a {playerClass}. Narrate adventures, describe settings, control NPCs, and guide the player through imaginative scenarios. Be creative, engaging, and always stay in character as a DM. Use a max of 10 sentences and make them easy to read. Put each idea on a new line.";
+
+        public const string FallbackClassPrompt =
+            "Before we begin, tell me your class so I can tailor your adventures. Are you a Rogue, Wizard, Paladin, Ranger, or something else?";
+    }
+
+    // Constructor for the ChatService
     public DungeonMasterChatService(IConfiguration config)
     {
         _config = config;
-        // Add the system prompt as the first message in the history
-        _chatHistory.Add(new SystemChatMessage(
-             "You are a Dungeons & Dragons Dungeon Master guiding a {playerClass}. Narrate adventures, describe settings, control NPCs, and guide the player through imaginative scenarios. Be creative, engaging, and always stay in character as a DM. Use a max of 10 sentences and make them easy to read. Put each idea on a new line."
-         ));
+        InitializeSession(); // call for the initilization session
+    }
+
+    // initialize the Chat session method
+    private void InitializeSession()
+    {
+        _chatHistory.Add(new SystemChatMessage(DungeonMasterPrompts.SystemPrompt));
 
         if (string.IsNullOrWhiteSpace(_playerClass))
-        {
-            var prompt = "Before we begin, tell me your class so I can tailor your adventures. Are you a Rogue, Wizard, Paladin, Ranger, or something else?";
-            _chatLog.Add(new ChatLogMessage { Role = "DM", Content = prompt });
-        }
-
+        { 
+            _chatLog.Add(new ChatLogMessage
+            { 
+                Role = ChatRole.DM,
+                Content = DungeonMasterPrompts.FallbackClassPrompt    
+            });
+        }   
     }
 
     public async Task<string> SendMessageAsync(string userMessage)
@@ -44,14 +59,11 @@ public class DungeonMasterChatService
         var chatClient = client.GetChatClient("gpt-4o-mini");
 
         OnChatUpdated?.Invoke();
-        // Append DM-style actionable suggestions
-        var classSuggestions = DiceActionRegistry.GetSuggestions(_playerClass, userMessage);
-        var formatted = string.Join("\n", classSuggestions.Select((s, i) => $"{i + 1}. {s}"));
-        var enrichedPrompt = $"{userMessage}\n\nClass Context: {_playerClass}\nSuggested Actions:\n{formatted}\n\nPlease expand narratively based on the player's intent and class abilities.";
 
-        var userMsg = new UserChatMessage(enrichedPrompt);
+        var userMsg = new UserChatMessage(BuildEnrichedPrompt(userMessage));
+
         _chatHistory.Add(userMsg);
-        _chatLog.Add(new ChatLogMessage { Role = "Player", Content = userMessage });
+        _chatLog.Add(new ChatLogMessage { Role = ChatRole.Player, Content = userMessage });
 
         string aiResponse = string.Empty;
 
@@ -67,11 +79,20 @@ public class DungeonMasterChatService
         // Update history and return
         var aiMsg = new AssistantChatMessage(aiResponse);
         _chatHistory.Add(aiMsg);
-        _chatLog.Add(new ChatLogMessage { Role = "DM", Content = aiResponse });
+        _chatLog.Add(new ChatLogMessage { Role = ChatRole.DM, Content = aiResponse });
 
         return aiResponse;
     }
 
+    // Method to enrich the AI prompt based on player message and class. Also includes formating.
+    private string BuildEnrichedPrompt(string userMessage)
+    {
+        // Append DM-style actionable suggestions
+        var classSuggestions = DiceActionRegistry.GetSuggestions(_playerClass, userMessage);
+        var formatted = string.Join("\n", classSuggestions.Select((s, i) => $"{i + 1}. {s}"));
+
+        return $"{userMessage}\n\nClass Context: {_playerClass}\nSuggested Actions:\n{formatted}\n\nPlease expand narratively based on the player's intent and class abilities.";
+    }
 
     // Returns a user-friendly chat log with explicit roles
     public IReadOnlyList<ChatLogMessage> GetChatLog() => _chatLog.AsReadOnly();
@@ -79,24 +100,38 @@ public class DungeonMasterChatService
     // Returns the raw OpenAI chat history (for context)
     public IReadOnlyList<ChatMessage> GetHistory() => _chatHistory.AsReadOnly();
 
+    // Clear current page on start up and add the initial prompt to get the AI into character
+    // Since we are not saving sessions, this allows a consitent but new experience on each run
     public void ClearHistory()
     {
         _chatHistory.Clear();
         _chatLog.Clear();
-        _chatHistory.Add(new SystemChatMessage(
-            "You are a Dungeons & Dragons Dungeon Master guiding a {playerClass}. Narrate adventures, describe settings, control NPCs, and guide the player through imaginative scenarios. Be creative, engaging, and always stay in character as a DM. Use a max of 10 sentences and make them easy to read. Put each idea on a new line."
-        ));
+        InitializeSession(); // initialize a new session after clearing the current one
     }
-
 }
 
+//Type safe roles with enum
+public enum ChatRole { Player, DM }
 // Custom message class for UI display
 public class ChatLogMessage
 {
-    public string Role { get; set; } = string.Empty; // "Player" or "DM"
+    public ChatRole Role { get; set; } // "Player" or "DM"
     public string Content { get; set; } = string.Empty;
 }
+//Chat Role Extentions to populate the desired name
+public static class ChatRoleExtension
+{
+    public static string ToDisplayName(this ChatRole role)
+        => role switch
+        {
+            ChatRole.Player => "Player",
+            ChatRole.DM => "Dungeon Master",
+            _ => role.ToString()
+        };
+}
 
+// A Dictionary that pulls the different classes from the DnDClassActions folder and takes suggestions
+// based on the contents of the files
 public static class DiceActionRegistry
 {
     private static readonly Dictionary<string, Func<string, List<string>>> _registry =
@@ -117,6 +152,7 @@ public static class DiceActionRegistry
             { "Artificer", ArtificerDiceActions.GetSuggestions },
         };
 
+    // we either get a conext based roll suggestion or go to a default of choose your path
     public static List<string> GetSuggestions(string playerClass, string context)
     {
         return _registry.TryGetValue(playerClass, out var provider)
