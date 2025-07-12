@@ -73,4 +73,5 @@ II. The next section is an prompt enricher to give more context to the AI once s
     }
 ```
 
-
+## 4. Additional Resources:
+For Microsoft's official content check out [Tutorial: Build a chatbot with Azure App Service and Azure OpenAI (.NET)](https://learn.microsoft.com/en-us/azure/app-service/tutorial-ai-openai-chatbot-dotnet).
