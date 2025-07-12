@@ -16,7 +16,7 @@ public class DungeonMasterChatService
     public void SetPlayerClass(string playerClassOrSpecies) => _playerClassOrSpecies = playerClassOrSpecies.Trim();
 
     //Keeps track of story context
-    public void SetStoryContext(string context) => _storyContext = context;
+    public void SetStoryContext(string storyContext) => _storyContext = storyContext;
 
     // applies context to the last rolled value
     public void SetSkillContext(string context) => _lastAbilityContext = context.Trim();
