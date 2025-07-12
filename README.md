@@ -43,31 +43,46 @@ I. There are two areas in the **DungeonMasterChatService.cs** where you can cust
 - The **FallbackClassPrompt** string is the initial message to be displayed in the chat window to get you started on your adventure.
       
 ```cs
-    // AI prompts
+    // AI initialization prompts
     public static class DungeonMasterPrompts
     {
-        public const string SystemPrompt =
-            "You are a Dungeons & Dragons Dungeon Master guiding a {playerClass}. " +
-            "Narrate adventures, describe settings, control NPCs, and guide the player through imaginative scenarios. " +
-            "Be creative, engaging, and always stay in character as a DM. " +
-            "Use a max of 10 sentences and make them easy to read. Put each idea on a new line.";
+        public const string SystemPrompt = @"
+        You are a Dungeons & Dragons Dungeon Master guiding a {playerClassOrSpecies}.
+        Narrate adventures, describe settings, control NPCs, and guide the player through imaginative scenarios.
+        Be creative, engaging, and always stay in character as a DM.
+        Use a max of 15 sentences and make them easy to read. Put each idea on a new line.";
 
         public const string FallbackClassPrompt =
-            "Before we begin, tell me your class so I can tailor your adventures. " +
-            "Are you a Rogue, Wizard, Paladin, Ranger, or something else?";
+        "Before we begin, tell me what you are! Adventurer, beast, undead... Are you a Rogue, a Mindflayer, a sentient potion, or something else?";
     }
 ```
 
 II. The next section is an prompt enricher to give more context to the AI once someone declares a class, writes messages, or interacts with the dice rolls.
 
 ```cs
-    // Method to enrich the AI prompt based on player message and class. Also includes formatting.
     private string BuildEnrichedPrompt(string userMessage)
     {
-        var enrichedRollMessage = $"{userMessage}\n\nClass Context: {_playerClass}\nSuggested Actions:\n\nPlease expand narratively based on the player's intent and class abilities. " +
-            $"If the player provides a dice roll, interpret it as a test of chance or skill." +
-            $"\r\nAbility Context: {_lastAbilityContext} Use the roll’s number and class abilities to shape dramatic outcomes." +
-            $"\r\nPrompt rolls from the correct sided dice. Available dice to the player are D20, D12, D10, D8, D6, and D4";
+        var enrichedRollMessage = $@"
+        Story: 
+        Continue this {_storyContext} as a Dungeon Master narrating an immersive Dungeons & Dragons adventure.
+        Build continuity so the player experiences an evolving storyline across messages.
+        Maintain consistent tone, setting, and escalating tension based on choices.
+
+        Class and Identity Context:
+        {_playerClassOrSpecies}
+
+        Ability Context:
+        {_lastAbilityContext}
+
+        Suggested Actions with Dice Roll Recommendations:
+        Provide 2–3 contextually relevant next steps based on the player’s identity and intent.
+        If the player has rolled a die, interpret it as a test of chance or skill.
+        Use the roll’s number and class traits to shape dramatic outcomes.
+        Available dice to the player are: D20, D12, D10, D8, D6, and D4.
+
+        Player Message:
+        {userMessage}
+        ";
 
         return enrichedRollMessage;
     }

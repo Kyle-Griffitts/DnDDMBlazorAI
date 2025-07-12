@@ -99,7 +99,6 @@
         }
     }
 
-
     //to handle the roll dice
     private Dictionary<int, int> diceValues = new();
     private Dictionary<int, bool> isRolling = new();
@@ -145,7 +144,7 @@
         });
         
         // Meanwhile, continue with message and scrolling
-        var message = $"I rolled a D{sides}: **{diceValues[sides]}**";
+        var message = $"I rolled a D{sides}: result *{diceValues[sides]}*";
         await DungeonMasterChat.SendMessageAsync(message);
         HandleChatUpdated(); // ensures freshness
 
@@ -153,7 +152,9 @@
         shouldScroll = true;
         await InvokeAsync(StateHasChanged);
     }
+    
     private List<ChatLogMessage> chatLog = new();
+    
     private void HandleChatUpdated()
     {
         chatLog = DungeonMasterChat.GetChatLog().ToList(); // ensure it's fresh
