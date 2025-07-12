@@ -64,10 +64,7 @@ II. The next section is an prompt enricher to give more context to the AI once s
     // Method to enrich the AI prompt based on player message and class. Also includes formatting.
     private string BuildEnrichedPrompt(string userMessage)
     {
-        // Append DM-style actionable suggestions
-        var classSuggestions = DiceActionRegistry.GetSuggestions(_playerClass, userMessage);
-        var formatted = string.Join("\n", classSuggestions.Select((s, i) => $"{i + 1}. {s}"));
-        var enrichedRollMessage = $"{userMessage}\n\nClass Context: {_playerClass}\nSuggested Actions:\n{formatted}\n\nPlease expand narratively based on the player's intent and class abilities. " +
+        var enrichedRollMessage = $"{userMessage}\n\nClass Context: {_playerClass}\nSuggested Actions:\n\nPlease expand narratively based on the player's intent and class abilities. " +
             $"If the player provides a dice roll, interpret it as a test of chance or skill." +
             $"\r\nAbility Context: {_lastAbilityContext} Use the roll’s number and class abilities to shape dramatic outcomes." +
             $"\r\nPrompt rolls from the correct sided dice. Available dice to the player are D20, D12, D10, D8, D6, and D4";

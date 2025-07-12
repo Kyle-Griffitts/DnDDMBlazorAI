@@ -1,6 +1,5 @@
 ﻿using Azure.AI.OpenAI;
 using Azure.Identity;
-using DnDDMBlazorAI.DnDClassActions;
 using OpenAI.Chat;
 
 public class DungeonMasterChatService
@@ -35,10 +34,7 @@ public class DungeonMasterChatService
     // Method to enrich the AI prompt based on player message and class. Also includes formatting.
     private string BuildEnrichedPrompt(string userMessage)
     {
-        // Append DM-style actionable suggestions
-        var classSuggestions = DiceActionRegistry.GetSuggestions(_playerClass, userMessage);
-        var formatted = string.Join("\n", classSuggestions.Select((s, i) => $"{i + 1}. {s}"));
-        var enrichedRollMessage = $"{userMessage}\n\nClass Context: {_playerClass}\nSuggested Actions:\n{formatted}\n\nPlease expand narratively based on the player's intent and class abilities. " +
+        var enrichedRollMessage = $"{userMessage}\n\nClass Context: {_playerClass}\nSuggested Actions:\n\nPlease expand narratively based on the player's intent and class abilities. " +
             $"If the player provides a dice roll, interpret it as a test of chance or skill." +
             $"\r\nAbility Context: {_lastAbilityContext} Use the roll’s number and class abilities to shape dramatic outcomes." +
             $"\r\nPrompt rolls from the correct sided dice. Available dice to the player are D20, D12, D10, D8, D6, and D4";
@@ -137,36 +133,6 @@ public static class ChatRoleExtension
         };
 }
 
-// A Dictionary that pulls the different classes from the DnDClassActions folder and takes suggestions
-// based on the contents of the files
-public static class DiceActionRegistry
-{
-    private static readonly Dictionary<string, Func<string, List<string>>> _classRegistry =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            { "Barbarian", BarbarianDiceActions.GetSuggestions },
-            { "Bard", BardDiceActions.GetSuggestions },
-            { "Cleric", ClericDiceActions.GetSuggestions },
-            { "Druid", DruidDiceActions.GetSuggestions },
-            { "Fighter", FighterDiceActions.GetSuggestions },
-            { "Monk", MonkDiceActions.GetSuggestions },
-            { "Paladin", PaladinDiceActions.GetSuggestions },
-            { "Ranger", RangerDiceActions.GetSuggestions },
-            { "Rogue", RogueDiceActions.GetSuggestions },
-            { "Sorcerer", SorcererDiceActions.GetSuggestions },
-            { "Warlock", WarlockDiceActions.GetSuggestions },
-            { "Wizard", WizardDiceActions.GetSuggestions },
-            { "Artificer", ArtificerDiceActions.GetSuggestions },
-        };
-
-    // we either get a conext based roll suggestion or go to a default of choose your path
-    public static List<string> GetSuggestions(string playerClass, string context)
-    {
-        return _classRegistry.TryGetValue(playerClass, out var provider)
-            ? provider(context)
-            : new List<string> { "Choose your path — roll a D6 for fate." };
-    }
-}
 
 
 
