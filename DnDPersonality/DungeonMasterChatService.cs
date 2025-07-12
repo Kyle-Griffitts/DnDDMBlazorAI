@@ -11,14 +11,15 @@ public class DungeonMasterChatService
     private readonly IConfiguration _config;
     private readonly List<ChatMessage> _chatHistory = new();
     private readonly List<ChatLogMessage> _chatLog = new();
-    private string? _lastFallbackSuggestion = null;
     private string _playerClass = string.Empty;
+    private string? _lastAbilityContext = null;
     public event Action? OnChatUpdated;
 
-    public void SetPlayerClass(string playerClass)
-    {
-        _playerClass = playerClass.Trim();
-    }
+    // keeps track of the player class
+    public void SetPlayerClass(string playerClass) => _playerClass = playerClass.Trim();
+
+    // applies context to the last rolled value
+    public void SetSkillContext(string context) => _lastAbilityContext = context.Trim();
 
     // AI prompts
     public static class DungeonMasterPrompts
@@ -90,8 +91,12 @@ public class DungeonMasterChatService
         // Append DM-style actionable suggestions
         var classSuggestions = DiceActionRegistry.GetSuggestions(_playerClass, userMessage);
         var formatted = string.Join("\n", classSuggestions.Select((s, i) => $"{i + 1}. {s}"));
-
-        return $"{userMessage}\n\nClass Context: {_playerClass}\nSuggested Actions:\n{formatted}\n\nPlease expand narratively based on the player's intent and class abilities.";
+        var enrichedRollMessage = $"{userMessage}\n\nClass Context: {_playerClass}\nSuggested Actions:\n{formatted}\n\nPlease expand narratively based on the player's intent and class abilities. " +
+            $"If the player provides a dice roll, interpret it as a test of chance or skill." +
+            $"\r\nAbility Context: {_lastAbilityContext} Use the roll’s number and class abilities to shape dramatic outcomes." +
+            $"\r\nPrompt rolls from the correct sided dice. Available dice to the player are D20, D12, D10, D8, D6, and D4";
+        
+        return enrichedRollMessage;
     }
 
     // Returns a user-friendly chat log with explicit roles

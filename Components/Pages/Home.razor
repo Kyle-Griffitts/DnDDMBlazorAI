@@ -143,9 +143,9 @@
             isTextRevealed[sides] = false;
             InvokeAsync(StateHasChanged); // resets the animations for the dice value
         });
-
+        
         // Meanwhile, continue with message and scrolling
-        var message = $"🧙‍♂️ You rolled a D{sides}: **{diceValues[sides]}**";
+        var message = $"I rolled a D{sides}: **{diceValues[sides]}**";
         await DungeonMasterChat.SendMessageAsync(message);
         HandleChatUpdated(); // ensures freshness
 
