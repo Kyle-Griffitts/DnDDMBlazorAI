@@ -1,10 +1,8 @@
 ﻿using Azure.AI.OpenAI;
 using Azure.Identity;
 using DnDDMBlazorAI.DnDClassActions;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Configuration;
 using OpenAI.Chat;
-using System.Collections.Generic;
+
 
 public class DungeonMasterChatService
 {
